@@ -1,8 +1,17 @@
 """Plan View for generating map based charts"""
 
+import logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s %(message)s",
+    datefmt="%y-%m-%d %H:%M:%S"
+)
+
+logging.info("Loading libraries")
 from pathlib import Path
 import logging
 import matplotlib as mpl
+mpl.use("AGG")
 import matplotlib.pyplot as plt
 import numpy as np
 import cartopy
@@ -14,10 +23,12 @@ from omfg.constants import Varno
 
 class Planview(Chart):
     """Map-based chart"""
+    logging.info("Telling cartopy to use data directory: %s", str(Path(__file__).parent / "cartopy"))
     cartopy.config["data_dir"] = str(Path(__file__).parent / "cartopy")
 
     def generate(self):
         """Generate the chart"""
+        logging.info("Generating chart")
         omfg_path = self.get_omfg_path()
         image_filepath = omfg_path / self.get_image_filename()
         if image_filepath.is_file():
@@ -91,7 +102,7 @@ class Planview(Chart):
         lats = np_data["lat@hdr"][indx]
         lons = np_data["lon@hdr"][indx]
         data = np_data[column][indx]
-        data /= 100.0  # TODO: make this dynamic based on chart details
+        # data /= 100.0  # TODO: make this dynamic based on chart details
         return lats, lons, data
 
     def generate_plot(self, filename, map_ax, cmap, norm, lons, lats, data):
