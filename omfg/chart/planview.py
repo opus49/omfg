@@ -9,6 +9,7 @@ import cartopy
 from cartopy.feature import BORDERS
 import cartopy.crs as ccrs
 from .chart import Chart
+from omfg.constants import Varno
 
 
 class Planview(Chart):
@@ -21,9 +22,9 @@ class Planview(Chart):
         image_filepath = omfg_path / self.get_image_filename()
         if image_filepath.is_file():
             return str(image_filepath)
+        lats, lons, data = self.load_data()
         map_ax = self.setup_map_ax()
-        cmap, norm = self.setup_colors()
-        lats, lons, data = self.load_data(Path(self.config["data_path"]))
+        cmap, norm = self.setup_colors(np.min(data), np.max(data))
         self.generate_plot(str(image_filepath), map_ax, cmap, norm, lons, lats, data)
         return str(image_filepath)
 
@@ -62,16 +63,18 @@ class Planview(Chart):
         return map_ax
 
     @staticmethod
-    def setup_colors():
+    def setup_colors(min_value, max_value):
         """Set up the color related stuff"""
         logging.info("Normalizing colors")
         cmap = mpl.cm.get_cmap("jet")
-        bounds = np.arange(950, 1060, 10)  # TODO: make this dynamic based on chart details
+        # bounds = np.arange(950, 1060, 10)  # TODO: make this dynamic based on chart details
+        bounds = np.linspace(min_value, max_value, 10)
         norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
         return cmap, norm
 
-    def load_data(self, data_path):
+    def load_data(self):
         """Use numpy to load the data"""
+        data_path = Path(self.config["data_path"])
         numpy_filepath = data_path / self.config["cycle"]
         numpy_filepath /= f"{self.config['obs_group']}_{self.config['varno']}.npy"
         logging.info("Loading the numpy data")
@@ -119,8 +122,17 @@ class Planview(Chart):
         text_ax.text(0.65, 0.35, f"Mean: {np.mean(data):.1f}", fontsize=10)
         text_ax.text(0.85, 0.35, f"StDev: {np.std(data):.1f}", fontsize=10)
         text_ax.set_title(
-            f"{'Mean sea-level pressure (hPa): an_depar':100}20190917T0600Z",
+            #  f"{'Mean sea-level pressure (hPa): an_depar':100}20190917T0600Z",
+            self.get_title(),
             fontsize=14
         )
         logging.info("Saving")
         plt.savefig(filename, bbox_inches="tight", dpi=100, pad_inches=0.25)
+
+    def get_title(self):
+        """Build the title for the chart"""
+        name = Varno.get_name(self.config["varno"])
+        column, _ = self.config["column"].split("@")
+        desc = ': '.join([Varno.get_desc(name), column])
+        return f'{desc:100}{self.config["cycle"]}'
+

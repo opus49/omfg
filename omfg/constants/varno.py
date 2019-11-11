@@ -6,6 +6,10 @@ class Varno:
     @staticmethod
     def get_name(code):
         """Get the varno name for the given code."""
+        try:
+            code = int(code)
+        except ValueError:
+            return "unknown"
         for name, values in VARNO_TABLE.items():
             if values["code"] == code:
                 return name
