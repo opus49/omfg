@@ -1,13 +1,13 @@
 """Plan View for generating map based charts"""
 
-import logging
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s %(message)s",
-    datefmt="%y-%m-%d %H:%M:%S"
-)
+# import logging
+# logging.basicConfig(
+#    level=logging.DEBUG,
+#    format="%(asctime)s %(message)s",
+#    datefmt="%y-%m-%d %H:%M:%S"
+# )
+# logging.info("Loading libraries")
 
-logging.info("Loading libraries")
 from pathlib import Path
 import logging
 import matplotlib as mpl
@@ -69,7 +69,9 @@ class Planview(Chart):
             alpha=0.25,
             color="gray"
         )
-        # map_gl.xlabels_top = False  # cartopy <= 0.17
+        # cartopy is weird about turning off the top labels
+        # which appears to have changed with 0.17
+        map_gl.xlabels_top = False  # cartopy <= 0.17
         map_gl.top_labels = False
         return map_ax
 
@@ -138,7 +140,7 @@ class Planview(Chart):
             fontsize=14
         )
         logging.info("Saving")
-        plt.savefig(filename, bbox_inches="tight", dpi=100, pad_inches=0.25)
+        plt.savefig(filename, bbox_inches="tight", dpi=150, pad_inches=0.25)
 
     def get_title(self):
         """Build the title for the chart"""

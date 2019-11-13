@@ -4,7 +4,12 @@
 
 from argparse import ArgumentParser
 import json
+import logging
 import traceback
+
+from omfg.util import init_logging
+init_logging(logging.DEBUG)
+
 from omfg.chart.planview import Planview
 from omfg.chart.timeseries import Timeseries
 

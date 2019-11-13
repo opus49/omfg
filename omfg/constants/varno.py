@@ -2,7 +2,60 @@
 
 
 class Varno:
-    """Static class for looking up varno information."""
+    """Class for storying/looking up varno information."""
+    def __init__(self, name, code, desc, varno_type):
+        self._name = name
+        self._code = code
+        self._desc = desc
+        self._varno_type = varno_type
+
+    @property
+    def name(self):
+        """The varno name"""
+        return self._name
+
+    @property
+    def code(self):
+        """The varno code"""
+        return self._code
+
+    @property
+    def desc(self):
+        """The varno description"""
+        return self._desc
+
+    @property
+    def formula(self):
+        """The formula to be applied to this varno's values"""
+        return self._varno_type.formula
+
+    @property
+    def levels(self):
+        """The colorbar levels for this varno"""
+        return self._varno_type.levels
+
+    @property
+    def units(self):
+        """The units that apply to this varno after the formula is applied"""
+        return self._varno_type.units
+
+    @staticmethod
+    def get_varno_from_code(code):
+        """Get a Varno object from a code."""
+        name = Varno.get_name(code)
+        if name not in VARNO_TABLE:
+            raise ValueError(f"Unknown varno code: {code}")
+        if "type" in VARNO_TYPES[name]:
+            varno_type = VarnoType.from_type(VARNO_TABLE[name]["type"])
+        else:
+            varno_type = VarnoType()
+        return Varno(
+            name=name,
+            code=code,
+            desc=VARNO_TYPES[name]["desc"],
+            varno_type=varno_type
+        )
+
     @staticmethod
     def get_name(code):
         """Get the varno name for the given code."""
@@ -30,6 +83,48 @@ class Varno:
             return VARNO_TABLE[name]["desc"]
         except KeyError:
             return "unknown"
+
+    @staticmethod
+    def get_type(name):
+        """Get the VarnoType for the given varno."""
+        try:
+            return VarnoType.from_type(VARNO_TABLE[name]["type"])
+        except KeyError:
+            return VarnoType()
+
+
+class VarnoType:
+    """Class for grouping varnos by similar characteristics"""
+    def __init__(self, formula=None, levels=None, units=None):
+        self._formula = formula
+        self._levels = levels
+        self._units = units
+
+    @property
+    def formula(self):
+        """The formula to be applied to this type of varno"""
+        return self._formula
+
+    @property
+    def levels(self):
+        """The colorbar levels that apply to this type of varno"""
+        return self._levels
+
+    @property
+    def units(self):
+        """The units that apply to this type of varno after the formula is applied"""
+        return self._units
+
+    @staticmethod
+    def from_type(varno_type):
+        """Get a varno type object from the given varno type name"""
+        if varno_type in VARNO_TYPES:
+            return VarnoType(
+                formula=VARNO_TYPES[varno_type]["formula"],
+                levels=VARNO_TYPES[varno_type]["levels"],
+                units=VARNO_TYPES[varno_type]["units"]
+            )
+        raise ValueError(f"Unknown varno type: {varno_type}")
 
 
 VARNO_TABLE = {
@@ -656,5 +751,19 @@ VARNO_TABLE = {
     "z": {
         "desc": "geopotential",
         "code": 1
+    }
+}
+
+
+VARNO_TYPES = {
+    "pressure": {
+        "formula": "data /= 10",
+        "levels": (850, 860, 870, 880, 890, 900, 910, 920, 930, 940),
+        "units": "hPa",
+    },
+    "temperature": {
+        "formula": "data",
+        "levels": (0, 50, 100, 150, 200, 250, 300, 350, 400),
+        "units": "Degrees Kelvin"
     }
 }
