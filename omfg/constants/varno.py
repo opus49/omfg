@@ -1,5 +1,7 @@
 """Constant values for varno names, codes, and descriptions."""
 
+import logging
+
 
 class Varno:
     """Class for storying/looking up varno information."""
@@ -25,6 +27,11 @@ class Varno:
         return self._desc
 
     @property
+    def cmap(self):
+        """The colormap type"""
+        return self._varno_type.cmap
+
+    @property
     def formula(self):
         """The formula to be applied to this varno's values"""
         return self._varno_type.formula
@@ -42,17 +49,23 @@ class Varno:
     @staticmethod
     def get_varno_from_code(code):
         """Get a Varno object from a code."""
-        name = Varno.get_name(code)
+        logging.info("Getting name for code %s", code)
+        name = Varno.get_name(int(code))
+        logging.info("Found name %s", name)
         if name not in VARNO_TABLE:
+            logging.info("Unknown varno code %s", code)
             raise ValueError(f"Unknown varno code: {code}")
-        if "type" in VARNO_TYPES[name]:
+        if "type" in VARNO_TABLE[name]:
+            logging.info("Getting type")
             varno_type = VarnoType.from_type(VARNO_TABLE[name]["type"])
+            logging.info("Found type")
         else:
+            logging.info("No type available")
             varno_type = VarnoType()
         return Varno(
             name=name,
             code=code,
-            desc=VARNO_TYPES[name]["desc"],
+            desc=VARNO_TABLE[name]["desc"],
             varno_type=varno_type
         )
 
@@ -95,10 +108,16 @@ class Varno:
 
 class VarnoType:
     """Class for grouping varnos by similar characteristics"""
-    def __init__(self, formula=None, levels=None, units=None):
+    def __init__(self, cmap=None, formula=None, levels=None, units=None):
+        self._cmap = cmap
         self._formula = formula
         self._levels = levels
         self._units = units
+
+    @property
+    def cmap(self):
+        """The colormap"""
+        return self._cmap
 
     @property
     def formula(self):
@@ -120,6 +139,7 @@ class VarnoType:
         """Get a varno type object from the given varno type name"""
         if varno_type in VARNO_TYPES:
             return VarnoType(
+                cmap=VARNO_TYPES[varno_type]["cmap"],
                 formula=VARNO_TYPES[varno_type]["formula"],
                 levels=VARNO_TYPES[varno_type]["levels"],
                 units=VARNO_TYPES[varno_type]["units"]
@@ -433,7 +453,7 @@ VARNO_TABLE = {
         "code": 177
     },
     "pmsl": {
-        "desc": "Mean sea-level pressure (Pa)",
+        "desc": "Mean Sea-Level Pressure",
         "code": 108
     },
     "potential_temp": {
@@ -493,8 +513,9 @@ VARNO_TABLE = {
         "code": 176
     },
     "rawbt": {
-        "desc": "brightness temperature (K)",
-        "code": 119
+        "desc": "Brightness Temperature",
+        "code": 119,
+        "type": "temperature"
     },
     "rawbt_amsr_89ghz": {
         "desc": "Raw brightness temperature specific to AMSR 89GHz channels (K)",
@@ -633,12 +654,14 @@ VARNO_TABLE = {
         "code": 273
     },
     "t": {
-        "desc": "upper air temperature (K)",
-        "code": 2
+        "desc": "Upper Air Temperature",
+        "code": 2,
+        "type": "temperature"
     },
     "t2m": {
-        "desc": "2m temperature (K)",
-        "code": 39
+        "desc": "2m Temperature",
+        "code": 39,
+        "type": "temperature"
     },
     "tcwv": {
         "desc": "Total column water vapour",
@@ -673,8 +696,9 @@ VARNO_TABLE = {
         "code": 79
     },
     "ts": {
-        "desc": "surface temperature (K)",
-        "code": 11
+        "desc": "Surface Temperature",
+        "code": 11,
+        "type": "temperature"
     },
     "tsts": {
         "desc": "sea water temperature (used in synoptic maps)",
@@ -757,13 +781,33 @@ VARNO_TABLE = {
 
 VARNO_TYPES = {
     "pressure": {
-        "formula": "data /= 10",
-        "levels": (850, 860, 870, 880, 890, 900, 910, 920, 930, 940),
+        "cmap": {
+            "depar": "bwr",
+            "value": "jet"
+        },
+        "formula": {
+            "depar": "data / 100",
+            "value": "data / 100"
+        },
+        "levels": {
+            "depar": (-50, -20, -10, -5, -2.5, 0, 2.5, 5, 10, 20, 50),
+            "value": (850, 860, 870, 880, 890, 900, 910, 920, 930, 940)
+        },
         "units": "hPa",
     },
     "temperature": {
-        "formula": "data",
-        "levels": (0, 50, 100, 150, 200, 250, 300, 350, 400),
-        "units": "Degrees Kelvin"
+        "cmap": {
+            "depar": "bwr",
+            "value": "jet"
+        },
+        "formula": {
+            "depar": "data",
+            "value": "data - 273.15"
+        },
+        "levels": {
+            "depar": (-50, -20, -10, -5, -2.5, 0, 2.5, 5, 10, 20, 50),
+            "value": (-70, -60, -50, -40, -30, -20, -10, 0, 10, 20, 30, 40)
+        },
+        "units": "Degrees Celsius"
     }
 }
