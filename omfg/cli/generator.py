@@ -35,9 +35,14 @@ def generate():
     return chart_generator.generate()
 
 
-if __name__ == "__main__":
+def main():
+    """Main program"""
     try:
         print(f"[OK]{generate()}")
     except Exception as err:
         traceback.print_exc()
         print(f"[FAIL]{err}")
+
+
+if __name__ == "__main__":
+    main()
