@@ -3,57 +3,34 @@
 from pathlib import Path
 import logging
 import matplotlib as mpl
+# pylint: disable=wrong-import-position,wrong-import-order
 mpl.use("AGG")
 import matplotlib.pyplot as plt
 import numpy as np
 import cartopy
 from cartopy.feature import BORDERS
 import cartopy.crs as ccrs
+
 from .chart import Chart
-from omfg.constants import Column, Varno, VertcoType
 
 
 class Planview(Chart):
     """Map-based chart"""
-    logging.info("Telling cartopy to use data directory: %s", str(Path(__file__).parent / "cartopy"))
+    logging.info("Telling cartopy to use data_dir: %s", str(Path(__file__).parent / "cartopy"))
     cartopy.config["data_dir"] = str(Path(__file__).parent / "cartopy")
 
-    def generate(self):
+    def _generate(self):
         """Generate the chart"""
-        mpl.rcParams["font.sans-serif"] = "Noto Mono"
-        mpl.rcParams["font.family"] = "sans-serif"
         logging.info("Generating chart")
-        omfg_path = self.get_omfg_path()
-        image_filepath = omfg_path / self.get_image_filename()
-        if self.config["cache"] == "true":
-            if image_filepath.is_file():
-                return str(image_filepath)
-        self.varno = Varno.get_varno_from_code(self.config["varno"])
         lats, lons, data = self.load_data()
-        if self.varno.formula is not None:
-            if "depar" in self.config["column"]:
-                data = eval(self.varno.formula["depar"])
+        if self.config.varno.formula is not None:
+            if self.config.is_depar:
+                data = eval(self.config.varno.formula["depar"])
             else:
-                data = eval(self.varno.formula["value"])
+                data = eval(self.config.varno.formula["value"])
         map_ax = self.setup_map_ax()
         cmap, norm = self.setup_colors(np.min(data), np.max(data))
-        self.generate_plot(str(image_filepath), map_ax, cmap, norm, lons, lats, data)
-        return str(image_filepath)
-
-    def get_image_filename(self):
-        """Get the image filename"""
-        vertco_min, vertco_max = self.config["vertco"].split(",")
-        filestem = "_".join([
-            self.config["chart_type"],
-            self.config["cycle"],
-            self.config["column"],
-            self.config["varno"],
-            self.config["obs_group"],
-            str(self.config["vertco_type"]),
-            vertco_min,
-            vertco_max
-        ])
-        return f"{filestem}.png"
+        self.generate_plot(map_ax, cmap, norm, lons, lats, data)
 
     @staticmethod
     def setup_map_ax():
@@ -79,47 +56,44 @@ class Planview(Chart):
     def setup_colors(self, min_value, max_value):
         """Set up the color related stuff"""
         logging.info("Normalizing colors")
-        if self.varno.cmap is not None:
-            if "depar" in self.config["column"]:
-                cmap = mpl.cm.get_cmap(self.varno.cmap["depar"])
+        if self.config.varno.cmap is not None:
+            if self.config.is_depar:
+                cmap = mpl.cm.get_cmap(self.config.varno.cmap["depar"])
             else:
-                cmap = mpl.cm.get_cmap(self.varno.cmap["value"])
+                cmap = mpl.cm.get_cmap(self.config.varno.cmap["value"])
         else:
             cmap = mpl.cm.get_cmap("jet")
-        # bounds = np.arange(950, 1060, 10)  # TODO: make this dynamic based on chart details
-        if self.varno.levels is None:
+        if self.config.varno.levels is None:
             bounds = np.linspace(min_value, max_value, 10)
         else:
-            if "depar" in self.config["column"]:
-                bounds = self.varno.levels["depar"]
+            if self.config.is_depar:
+                bounds = self.config.varno.levels["depar"]
             else:
-                bounds = self.varno.levels["value"]
+                bounds = self.config.varno.levels["value"]
         norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
         return cmap, norm
 
     def load_data(self):
         """Use numpy to load the data"""
-        data_path = Path(self.config["data_path"])
-        numpy_filepath = data_path / self.config["cycle"]
-        numpy_filepath /= f"{self.config['obs_group']}_{self.config['varno']}.npy"
+        numpy_filepath = self.config.data_path / str(self.config.cycle1)
+        numpy_filepath /= f"{self.config.obs_group}_{self.config.varno.code}.npy"
         logging.info("Loading the numpy data")
         np_data = np.load(str(numpy_filepath))
         logging.info("Extracting the relevant data")
-        column = self.config["column"]
-        vertco_min, vertco_max = self.get_vertco_bounds()
-        condition = (~np.isnan(np_data[column]))
+        condition = (~np.isnan(np_data[self.config.column.name]))
         condition &= (~np.isnan(np_data["vertco_reference_1@body"]))
-        condition &= (np_data["vertco_type@body"] == int(self.config["vertco_type"]))
-        condition &= (np_data["vertco_reference_1@body"] >= vertco_min)
-        condition &= (np_data["vertco_reference_1@body"] <= vertco_max)
+        condition &= (np_data["vertco_type@body"] == self.config.vertco_type.code)
+        condition &= (np_data["vertco_reference_1@body"] >= self.config.vertco_min)
+        condition &= (np_data["vertco_reference_1@body"] <= self.config.vertco_max)
         indx = np.where(condition)
         lats = np_data["lat@hdr"][indx]
         lons = np_data["lon@hdr"][indx]
-        data = np_data[column][indx]
+        data = np_data[self.config.column.name][indx]
         return lats, lons, data
 
-    def generate_plot(self, filename, map_ax, cmap, norm, lons, lats, data):
+    def generate_plot(self, map_ax, cmap, norm, lons, lats, data):
         """Generate the plot"""
+        # pylint: disable=too-many-arguments
         logging.info("Generating scatter plot")
         sc_plot = map_ax.scatter(
             lons,
@@ -134,8 +108,8 @@ class Planview(Chart):
         logging.info("Adding colorbar")
         cbar_ax = plt.axes([0.10, 0.125, 0.8, 0.025])
         cbar = self.figure.colorbar(sc_plot, cax=cbar_ax, orientation="horizontal")
-        if self.varno.units is not None:
-            cbar.set_label(self.varno.units)
+        if self.config.varno.units is not None:
+            cbar.set_label(self.config.varno.units)
         cbar.ax.tick_params(size=0)
 
         logging.info("Adding textbox")
@@ -152,32 +126,26 @@ class Planview(Chart):
             fontsize=14
         )
         logging.info("Saving")
-        plt.savefig(filename, bbox_inches="tight", dpi=150, pad_inches=0.25)
+        plt.savefig(str(self.output_filepath), bbox_inches="tight", dpi=150, pad_inches=0.25)
 
-    def get_vertco_bounds(self):
-        """Get the min/max vertco reference values as numpy floating values"""
-        vertco_min, vertco_max = self.config["vertco"].split(",")
-        return np.float(vertco_min), np.float(vertco_max)
-
-    def get_vertco(self):
+    def get_vertco_label(self):
         """Get a string representing the vertco type/range"""
-        vertco = f'{VertcoType.get_type(self.config["vertco_type"])}: '
-        vertco_min, vertco_max = self.get_vertco_bounds()
-        vertco += f'{int(vertco_min)}'
-        if vertco_min != vertco_max:
-            vertco += f' - {int(vertco_max)}'
+        vertco = f'{self.config.vertco_type.label}: '
+        vertco += f'{int(self.config.vertco_min)}'
+        if self.config.vertco_min != self.config.vertco_max:
+            vertco += f' - {int(self.config.vertco_max)}'
         return vertco
 
-    def get_desc(self):
+    def get_varno_desc(self):
         """Get a string representing the varno description and column if applicable"""
-        description = Varno.get_desc(Varno.get_name(self.config["varno"]))
-        column_title = Column.get_title(self.config["column"])
+        description = self.config.varno.desc
+        column_title = self.config.column.label
         if column_title is not None:
             description += f" ({column_title})"
         return description
 
     def get_title(self):
         """Build the title for the chart"""
-        title = f'Obs Group: {self.config["obs_group"]:25}{self.get_vertco():>46}\n'
-        title += f'{self.get_desc():68}{self.config["cycle"]}'
+        title = f'Obs Group: {self.config.obs_group:25}{self.get_vertco_label():>46}\n'
+        title += f'{self.get_varno_desc():68}{self.config.cycle1}'
         return title
