@@ -14,6 +14,10 @@ class Column:
         self._name = name
         self._label = label
 
+    def __str__(self):
+        parts = self._name.split("@")
+        return parts[0]
+
     @property
     def name(self):
         """The name used by ODB2"""

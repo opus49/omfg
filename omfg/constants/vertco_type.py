@@ -27,11 +27,15 @@ class VertcoType:
         self._code = code
         self._label = label
 
+    def __str__(self):
+        return f"{self.code}"
+
     @property
     def code(self):
         """The integer value used by ODB2"""
         return self._code
 
+    @property
     def label(self):
         """The label used by chart generators"""
         return self._label
