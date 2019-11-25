@@ -3,8 +3,7 @@
 import json
 from pathlib import Path
 import numpy as np
-from omfg.constants import Column, Varno, VertcoType
-from omfg.util import get_datetime_from_cycle
+from omfg.constants import Column, Cycle, Varno, VertcoType
 
 
 _FILESTEM_PROPERTIES = [
@@ -13,8 +12,8 @@ _FILESTEM_PROPERTIES = [
     "obs_group",
     "varno",
     "vertco_type",
-    "start_cycle",
-    "end_cycle",
+    "cycle1",
+    "cycle2",
     "vertco_min",
     "vertco_max"
 ]
@@ -28,8 +27,8 @@ class Config:
         self._cache = int(cache)
         self._chart_type = chart_type
         self._column = Column.get_column(column) if column else None
-        self._cycle1 = get_datetime_from_cycle(cycle1)
-        self._cycle2 = get_datetime_from_cycle(cycle2)
+        self._cycle1 = Cycle(cycle1)
+        self._cycle2 = Cycle(cycle2)
         self._data_path = Path(data_path)
         self._obs_group = obs_group
         self._varno = Varno.get_varno(varno_code)
@@ -54,13 +53,13 @@ class Config:
 
     @property
     def cycle1(self):
-        """Datetime object representing the first cycle time."""
+        """Cycle object representing the first cycle time."""
         return self._cycle1
 
     @property
     def cycle2(self):
         """
-        Datetime object representing the second cycle time.
+        Cycle object representing the second cycle time.
         For planview, this will be the same as cycle1.
         """
         return self._cycle2
