@@ -21,7 +21,7 @@ _FILESTEM_PROPERTIES = [
 
 class Config:
     """Explicit object.  Expects strings parsed from JSON file as parameters"""
-    #pylint: disable=too-many-instance-attributes,too-many-arguments
+    # pylint: disable=too-many-instance-attributes,too-many-arguments
     def __init__(self, cache, chart_type, column, cycle1, cycle2, data_path,
                  obs_group, varno_code, vertco_max, vertco_min, vertco_type_code):
         self._cache = int(cache)
@@ -109,7 +109,6 @@ class Config:
             if value is not None:
                 filestem_parts.append(str(value))
         return "_".join(filestem_parts)
-
 
     @staticmethod
     def load(json_file):
