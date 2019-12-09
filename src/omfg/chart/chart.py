@@ -2,10 +2,11 @@
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-import matplotlib as mpl
+
 # pylint: disable=wrong-import-position,wrong-import-order
+import matplotlib as mpl
 mpl.use("AGG")
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt  # noqa: 402
 
 
 class Chart(ABC):
