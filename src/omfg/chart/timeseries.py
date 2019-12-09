@@ -2,12 +2,10 @@
 
 from collections import defaultdict as ddict
 from copy import copy
-from random import randint
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
 from .chart import Chart
-from omfg.constants import Cycle
 
 
 class _TimeseriesData:
@@ -49,7 +47,8 @@ class _TimeseriesData:
         data = ddict(list)
         this_cycle = copy(config.cycle1)
         while this_cycle <= config.cycle2:
-            np_file = config.data_path / str(this_cycle) / f"{config.obs_group}_{config.varno.code}.npy"
+            np_file = config.data_path / str(this_cycle)
+            np_file /= f"{config.obs_group}_{config.varno.code}.npy"
             if np_file.is_file():
                 np_data = np.load(str(np_file))
                 condition = (~np.isnan(np_data["obsvalue@body"]))
@@ -81,7 +80,13 @@ class Timeseries(Chart):
         plt.plot(data.cycle_dates, data.an_depar)
         plt.plot(data.cycle_dates, data.fg_depar)
         plt.grid(True)
-        plt.legend(["an_depar", "fg_depar"], loc="upper center", ncol=2, frameon=False, bbox_to_anchor=(0.5, 1.2))
+        plt.legend(
+            ["an_depar", "fg_depar"],
+            loc="upper center",
+            ncol=2,
+            frameon=False,
+            bbox_to_anchor=(0.5, 1.2)
+        )
         ax2 = plt.subplot(312)
         self.format_xaxis(ax2, len(data.cycle_dates))
         if self.config.varno.units is not None:
@@ -89,13 +94,25 @@ class Timeseries(Chart):
         plt.plot(data.cycle_dates, data.an_depar_std)
         plt.plot(data.cycle_dates, data.fg_depar_std)
         plt.grid(True)
-        plt.legend(["an_depar (stdev)", "fg_depar (stdev)"], loc="upper center", ncol=2, frameon=False, bbox_to_anchor=(0.5, 1.2))
+        plt.legend(
+            ["an_depar (stdev)", "fg_depar (stdev)"],
+            loc="upper center",
+            ncol=2,
+            frameon=False,
+            bbox_to_anchor=(0.5, 1.2)
+        )
         ax3 = plt.subplot(313)
         self.format_xaxis(ax3, len(data.cycle_dates))
         ax3.set_ylabel("number", fontsize=8)
         plt.plot(data.cycle_dates, data.obscount)
         plt.grid(True)
-        plt.legend(["obscount"], loc="upper center", ncol=2, frameon=False, bbox_to_anchor=(0.5, 1.2))
+        plt.legend(
+            ["obscount"],
+            loc="upper center",
+            ncol=2,
+            frameon=False,
+            bbox_to_anchor=(0.5, 1.2)
+        )
         plt.suptitle(self.get_title())
         plt.savefig(str(self.output_filepath), bbox_inches="tight", dpi=150, pad_inches=0.25)
 
@@ -133,4 +150,3 @@ class Timeseries(Chart):
         title = f'Obs Group: {self.config.obs_group:25}{self.get_vertco_label():>46}\n'
         title += f'{self.get_varno_desc():51}{self.config.cycle1} - {self.config.cycle2}'
         return title
-
