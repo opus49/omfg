@@ -2,16 +2,16 @@
 
 from pathlib import Path
 import logging
-import matplotlib as mpl
-# pylint: disable=wrong-import-position,wrong-import-order
-mpl.use("AGG")
-import matplotlib.pyplot as plt
 import numpy as np
 import cartopy
 from cartopy.feature import BORDERS
 import cartopy.crs as ccrs
-
 from .chart import Chart
+
+# pylint: disable=wrong-import-position,wrong-import-order
+import matplotlib as mpl
+mpl.use("AGG")
+import matplotlib.pyplot as plt  # noqa: 402
 
 
 class Planview(Chart):
