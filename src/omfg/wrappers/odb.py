@@ -1,6 +1,7 @@
+"""Wrapper for ODB files"""
+
 import logging
 import numpy as np
-from netCDF4 import Dataset
 from py3odb import Reader
 
 
@@ -22,8 +23,7 @@ _DEFAULT_FIELDS = {
 class ODB:
     """
     Object wrapper around the relevant data contained in an odb2 file.
-    If you do not specify a varno, all varnos will be extracted.  The
-    fields                                                                
+    If you do not specify a varno, all varnos will be extracted.
     """
     def __init__(self, filename, varno=None, fields=None):
         if fields is None:
@@ -38,17 +38,6 @@ class ODB:
     def get_varno_data(self, varno):
         """Get a numpy array subset for the given varno"""
         return self._data[self._get_varno_index(varno)]
-
-    def save_netcdf(self, varno, filename):
-        """Generate a netCDF4 file for the given varno"""
-        logging.info("Saving netCDF4 file")
-        varno_data = self.get_varno_data(varno)
-        nc_data = Dataset(filename, "w")
-        nc_data.createDimension("record", None)
-        for name, dtype in _FIELDS.items():
-            variable = nc_data.createVariable(name, dtype, "record", zlib=True)
-            variable[:] = varno_data[name]
-        nc_data.close()
 
     @staticmethod
     def _build_dtype(fields):
