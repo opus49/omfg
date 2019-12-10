@@ -117,21 +117,22 @@ class Timeseries(Chart):
         plt.savefig(str(self.output_filepath), bbox_inches="tight", dpi=150, pad_inches=0.25)
 
     @staticmethod
-    def format_xaxis(ax, cycle_count):
-        ax.yaxis.set_label_position("right")
-        for item in ax.get_yticklabels():
+    def format_xaxis(axes, cycle_count):
+        """Format the x axis"""
+        axes.yaxis.set_label_position("right")
+        for item in axes.get_yticklabels():
             item.set_fontsize(8)
-        for item in ax.get_xticklabels():
+        for item in axes.get_xticklabels():
             item.set_fontsize(8)
-        ax.margins(x=0)
+        axes.margins(x=0)
         maxticks = cycle_count if cycle_count <= 30 else 30
         locator = mdates.AutoDateLocator(maxticks=maxticks, interval_multiples=False)
         formatter = mdates.ConciseDateFormatter(locator, show_offset=False)
         formatter.formats[3] = "%HZ"
         formatter.zero_formats[3] = "\n%d-%b"
         formatter.zero_formats[2] = "%d\n%b"
-        ax.xaxis.set_major_locator(locator)
-        ax.xaxis.set_major_formatter(formatter)
+        axes.xaxis.set_major_locator(locator)
+        axes.xaxis.set_major_formatter(formatter)
 
     def get_vertco_label(self):
         """Get a string representing the vertco type/range"""
