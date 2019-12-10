@@ -4,7 +4,7 @@ with open("README.rst") as fh_in:
     README = fh_in.read()
 
 setup(
-    name="omfg",
+    name="omfgpy",
     version="0.1",
     description="Observation Monitoring for GALWEM",
     long_description=README,
