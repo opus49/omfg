@@ -119,7 +119,7 @@ def test_get_code_invalid_name():
     assert omfg.constants.Varno.get_code("foo") == omfg.constants.UNKNOWN
 
 
-def test_get_desc():
+def test_get_desc(t2m_lookup):
     """Test the get desc method"""
     assert omfg.constants.Varno.get_desc("t2m") == t2m_lookup["desc"]
 
