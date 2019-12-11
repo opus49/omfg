@@ -45,5 +45,5 @@ class VertcoType:
         """Get a VertcoType object from a code"""
         try:
             return VertcoType(code=code, label=VERTCO_LABELS[int(code)])
-        except KeyError:
-            return "unknown"
+        except (KeyError, ValueError) as err:
+            raise ValueError(f"Invalid code {code}: {err}")
