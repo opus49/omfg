@@ -4,6 +4,9 @@ import logging
 from .varno_type import VarnoType
 
 
+UNKNOWN = "unknown"
+
+
 class Varno:
     """Class for storing and looking up varno information."""
     def __init__(self, name, code, desc, varno_type):
@@ -77,11 +80,11 @@ class Varno:
         try:
             code = int(code)
         except ValueError:
-            return "unknown"
+            return UNKNOWN
         for name, values in VARNO_TABLE.items():
             if values["code"] == code:
                 return name
-        return "unknown"
+        return UNKNOWN
 
     @staticmethod
     def get_code(name):
@@ -89,7 +92,7 @@ class Varno:
         try:
             return VARNO_TABLE[name]["code"]
         except KeyError:
-            return "unknown"
+            return UNKNOWN
 
     @staticmethod
     def get_desc(name):
@@ -97,7 +100,7 @@ class Varno:
         try:
             return VARNO_TABLE[name]["desc"]
         except KeyError:
-            return "unknown"
+            return UNKNOWN
 
     @staticmethod
     def get_type(name):

@@ -3,8 +3,8 @@
 from .column import Column
 from .cycle import Cycle
 from .subtype import Subtype
-from .varno import Varno
-from .varno_type import VarnoType
+from .varno import Varno, VARNO_TABLE, UNKNOWN
+from .varno_type import VarnoType, VARNO_TYPES
 from .vertco_type import VertcoType
 
 
@@ -14,5 +14,8 @@ __all__ = [
     "Subtype",
     "Varno",
     "VarnoType",
-    "VertcoType"
+    "VertcoType",
+    "VARNO_TABLE",
+    "VARNO_TYPES",
+    "UNKNOWN"
 ]
