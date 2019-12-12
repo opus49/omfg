@@ -14,6 +14,7 @@ _DEFAULT_FIELDS = {
     "fg_depar@body": "f8",
     "obsvalue@body": "f8",
     "ops_obstype@hdr": "i4",
+    "varno@body": "i4",
     "vertco_reference_1@body": "f8",
     "vertco_reference_2@body": "f8",
     "vertco_type@body": "i4"
