@@ -1,0 +1,55 @@
+disable automatic shutdown = True
+
+[scheduling]
+    initial cycle point = 20191123T0000Z
+    final cycle point = 20191124T0000Z
+    [[special tasks]]
+        clock-trigger = start_collect(PT24H)
+    [[queues]]
+        [[[retrieve_queue]]]
+            limit = 1
+            members = RETRIEVE
+
+    [[dependencies]]
+        [[[ T00,T06,T12,T18 ]]]
+            graph = """
+                finish_collect[-PT6H] => start_collect
+                {% for source_type, varnos in SOURCE_TYPES.items() %}
+                    start_collect => retrieve_{{ source_type }}
+                    {% for varno in varnos %}
+                        retrieve_{{ source_type }} => collect_{{ source_type }}_{{ varno }}:finish => collate => finish_collect
+                    {% endfor %}
+                {% endfor %}
+                start_collect
+            """
+
+[runtime]
+    [[root]]
+        script = {{ TASK_RUN_COMMAND }}
+        [[[environment]]]
+            PYTHONPATH=${CYLC_SUITE_DEF_PATH}/py:$PYTHONPATH
+    [[HPC]]
+        [[[job]]]
+            batch system = lsf
+            execution time limit = PT3H
+        [[[directives]]]
+            -q = "misc_normal"
+            -P = "GALWEM"
+
+    [[RETRIEVE]]
+
+    [[COLLECT]]
+
+    [[start_collect]]
+        inherit = COLLECT
+        script = echo Starting the collect
+
+    [[collate]]
+        inherit = COLLECT
+        script = {{ TASK_RUN_COMMAND }} --app-key=collate
+
+    [[finish_collect]]
+        inherit = COLLECT
+        script = echo Finished collect
+
+    {% include 'suite-runtime.rc' %}

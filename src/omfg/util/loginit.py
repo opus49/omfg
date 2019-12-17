@@ -1,9 +1,9 @@
-"""Utility module"""
+"""Simply utility module for initiating logging"""
 
 import logging
 
 
-def init_logging(level=logging.INFO):
+def loginit(level=logging.INFO):
     """Initialize simple logging because I'm tired of looking up the syntax """
     logging.basicConfig(
         level=level,

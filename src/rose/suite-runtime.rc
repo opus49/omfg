@@ -1,0 +1,27 @@
+{% for source_type, varnos in SOURCE_TYPES.items() %}
+
+    [[ collect_{{ source_type }} ]]
+        inherit = COLLECT
+        [[[ environment ]]]
+        {% if source_type in INCLUDE_REJECTS %}
+            INCLUDE_REJECTS=1
+        {% else %}
+            INCLUDE_REJECTS=0
+        {% endif %}
+
+    [[ retrieve_{{ source_type }} ]]
+        inherit = collect_{{ source_type }}, RETRIEVE
+        script = {{ TASK_RUN_COMMAND }} --app-key=retrieve
+        [[[environment]]]
+            SOURCE_TYPE={{ source_type }}
+
+    {% for varno in varnos %}
+        [[ collect_{{  source_type }}_{{ varno }} ]]
+            inherit = collect_{{ source_type }}, HPC
+            script = {{ TASK_RUN_COMMAND }} --app-key=collect
+            [[[environment]]]
+                SOURCE_TYPE={{ source_type }}
+                VARNO={{ varno }}
+    {% endfor %}
+
+{% endfor %}
