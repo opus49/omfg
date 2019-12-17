@@ -40,3 +40,11 @@ class Chart(ABC):
     def output_filepath(self):
         """Get the output Path object to use for generating images"""
         return self.get_omfg_path() / f"{self.config.get_output_filestem()}.png"
+
+    def get_vertco_label(self):
+        """Get a string representing the vertco type/range"""
+        vertco = f'{self.config.vertco_type.label}: '
+        vertco += f'{int(self.config.vertco_min)}'
+        if self.config.vertco_min != self.config.vertco_max:
+            vertco += f' - {int(self.config.vertco_max)}'
+        return vertco

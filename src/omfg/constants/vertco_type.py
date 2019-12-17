@@ -23,6 +23,24 @@ VERTCO_LABELS = {
 
 class VertcoType:
     """A type of vertical coordinate"""
+    PRESSURE = 1
+    GEOPOTENTIAL_HEIGHT = 2
+    TOVS_CHANNEL = 3
+    SCATTEROMETER_CHANNEL = 4
+    MODEL_LEVEL_NUMBER = 5
+    IMPACT_PARAMETER = 6
+    CHANNEL_NUMBER = 7
+    CHANNEL_WAVELENGTH = 8
+    CHANNEL_FREQUENCY = 9
+    OCEAN_DEPTH = 10
+    DERIVED_PRESSURE = 11
+    AMBIVALENT_WIND_NUMBER = 12
+    CLOUD_TOP_PRESSURE = 13
+    TANGENT_HEIGHT = 14
+    MODEL_PRESSURE = 15
+    LIDAR_RANGE = 16
+    LANE_NUMBER = 17
+
     def __init__(self, code, label):
         self._code = code
         self._label = label

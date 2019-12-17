@@ -128,14 +128,6 @@ class Planview(Chart):
         logging.info("Saving")
         plt.savefig(str(self.output_filepath), bbox_inches="tight", dpi=150, pad_inches=0.25)
 
-    def get_vertco_label(self):
-        """Get a string representing the vertco type/range"""
-        vertco = f'{self.config.vertco_type.label}: '
-        vertco += f'{int(self.config.vertco_min)}'
-        if self.config.vertco_min != self.config.vertco_max:
-            vertco += f' - {int(self.config.vertco_max)}'
-        return vertco
-
     def get_varno_desc(self):
         """Get a string representing the varno description and column if applicable"""
         description = self.config.varno.desc

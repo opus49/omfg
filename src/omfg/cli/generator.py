@@ -6,7 +6,7 @@ from argparse import ArgumentParser
 import logging
 import traceback
 
-from omfg.util import init_logging
+from omfg.util import loginit
 from omfg.chart import Config, Planview, Timeseries
 
 
@@ -32,10 +32,11 @@ def generate():
 
 def main():
     """Main program"""
-    init_logging(logging.INFO)
+    loginit(logging.INFO)
     try:
         print(f"[OK]{generate()}")
     except Exception as err:
+        # TODO - too general of an exception
         traceback.print_exc()
         print(f"[FAIL]{err}")
 
