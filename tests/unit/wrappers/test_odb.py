@@ -33,10 +33,13 @@ class MockReader:
 
     @staticmethod
     def _get_varno(sql_command):
-        if "WHERE varno" not in sql_command:
-            return None
-        _, varno = sql_command.split("=")
-        return int(varno)
+        if "varno=" in sql_command:
+            parts = sql_command.split()
+            for part in parts:
+                if "varno=" in part:
+                    _, varno = part.split("=")
+                    return int(varno)
+        return None
 
     @staticmethod
     def _get_varno_data(varno):
