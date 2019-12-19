@@ -13,10 +13,6 @@ from datetime import datetime as dt
 from omfg.util import StopWatch
 
 
-__all__ = [
-    "BaseApp"
-]
-
 _DEFAULT_LOG_LEVEL = logging.INFO
 
 _LOG_LEVELS = {
