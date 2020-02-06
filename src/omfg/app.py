@@ -13,7 +13,7 @@ from datetime import datetime as dt
 from omfg.util import StopWatch
 
 
-_DEFAULT_LOG_LEVEL = logging.INFO
+DEFAULT_LOG_LEVEL = logging.INFO
 
 _LOG_LEVELS = {
     "DEBUG": logging.DEBUG,
@@ -21,7 +21,7 @@ _LOG_LEVELS = {
     "WARNING": logging.WARNING,
     "ERROR": logging.ERROR,
     "CRITICAL": logging.CRITICAL,
-    None: _DEFAULT_LOG_LEVEL
+    None: DEFAULT_LOG_LEVEL
 }
 
 
@@ -43,7 +43,7 @@ class BaseApp(abc.ABC):
         try:
             return _LOG_LEVELS[self.get_arg("loglevel")]
         except KeyError:
-            return _DEFAULT_LOG_LEVEL
+            return DEFAULT_LOG_LEVEL
 
     def _init_logging(self):
         """Initialize logging however you see fit"""
