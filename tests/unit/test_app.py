@@ -1,8 +1,11 @@
 """Tests for loginit"""
+import argparse
 from datetime import datetime as dt
 import logging
 import os
+import pathlib
 import pytest
+# import shutil
 from unittest.mock import patch
 from ..context import omfg
 
@@ -24,6 +27,24 @@ class MockApp(omfg.BaseApp):
 
     def _run(self):
         raise NotImplementedError()
+
+
+class MockAppNoParse(omfg.BaseApp):
+    def _run(self):
+        raise NotImplementedError()
+
+
+class MockArgumentParser:
+    def __init__(self):
+        self.args = []
+
+    def add_argument(self, *args, **kwargs):
+        args_string = ",".join(args)
+        kwargs_string = ",".join([f"{x}={y}" for x, y in kwargs.items()])
+        self.args.append(",".join([args_string, kwargs_string]))
+
+    def parse_args(self):
+        return argparse.Namespace(args=self.args)
 
 
 @pytest.fixture(name="mock_app")
@@ -83,3 +104,94 @@ def test_validate_directory_invalid(mock_app, monkeypatch):
     monkeypatch.setattr(os.path, "isdir", mock_false)
     with pytest.raises(OSError):
         mock_app.validate_directory("foo")
+
+
+def test_parse(monkeypatch):
+    monkeypatch.setattr(argparse, "ArgumentParser", MockArgumentParser)
+    app = MockAppNoParse(
+        pos_args=(["filename", "The filename", str],),
+        opt_args=(
+            ["m", "max", "Maximum", int],
+            ["v", "verbose", "Do it verbosely", bool]
+        )
+
+    )
+    assert len(app._args["args"]) == 3
+    assert app._args["args"][0] == "filename,help=The filename,type=<class 'str'>"
+    assert app._args["args"][1] == "-m,--max,dest=max,help=Maximum,type=<class 'int'>"
+    assert app._args["args"][2] == "-v,--verbose,dest=verbose,help=Do it verbosely" \
+        ",action=store_true,default=False"
+
+
+def test_parse_pos_only(monkeypatch):
+    monkeypatch.setattr(argparse, "ArgumentParser", MockArgumentParser)
+    app = MockAppNoParse(
+        pos_args=(["filename", "The filename", str],)
+    )
+    assert len(app._args["args"]) == 1
+    assert app._args["args"][0] == "filename,help=The filename,type=<class 'str'>"
+
+
+def test_parse_opt_only(monkeypatch):
+    monkeypatch.setattr(argparse, "ArgumentParser", MockArgumentParser)
+    app = MockAppNoParse(
+        opt_args=(
+            ["m", "max", "Maximum", int],
+            ["v", "verbose", "Do it verbosely", bool]
+        )
+
+    )
+    assert len(app._args["args"]) == 2
+    assert app._args["args"][0] == "-m,--max,dest=max,help=Maximum,type=<class 'int'>"
+    assert app._args["args"][1] == "-v,--verbose,dest=verbose,help=Do it verbosely" \
+        ",action=store_true,default=False"
+
+
+def test_prepare_directory_already_a_file(mock_app, monkeypatch):
+    monkeypatch.setattr(pathlib.Path, "is_file", mock_true)
+    with pytest.raises(OSError):
+        mock_app.prepare_directory("foo")
+
+
+def test_prepare_directory_preserve(mock_app, monkeypatch):
+    monkeypatch.setattr(pathlib.Path, "is_file", mock_false)
+    monkeypatch.setattr(pathlib.Path, "is_dir", mock_true)
+    with patch("shutil.rmtree") as mock_rmtree:
+        with patch.object(pathlib.Path, "mkdir") as mock_mkdir:
+            mock_app.prepare_directory("foo")
+            mock_rmtree.assert_not_called()
+            mock_mkdir.assert_called_with(exist_ok=True)
+
+
+def test_prepare_directory_destroy(mock_app, monkeypatch):
+    monkeypatch.setattr(pathlib.Path, "is_file", mock_false)
+    monkeypatch.setattr(pathlib.Path, "is_dir", mock_true)
+    with patch("shutil.rmtree") as mock_rmtree:
+        with patch.object(pathlib.Path, "mkdir") as mock_mkdir:
+            mock_app.prepare_directory("foo", True)
+            mock_rmtree.assert_called_with("foo")
+            mock_mkdir.assert_called_with(exist_ok=True)
+
+
+def test_prepare_directory_destroy_rmtree_fails(mock_app, monkeypatch):
+    monkeypatch.setattr(pathlib.Path, "is_file", mock_false)
+    monkeypatch.setattr(pathlib.Path, "is_dir", mock_true)
+    with patch("shutil.rmtree") as mock_rmtree:
+        with patch.object(pathlib.Path, "mkdir") as mock_mkdir:
+            mock_rmtree.side_effect = OSError()
+            with pytest.raises(OSError):
+                mock_app.prepare_directory("foo", True)
+                mock_rmtree.assert_called_with("foo")
+                mock_mkdir.assert_called_with(exist_ok=True)
+
+
+def test_prepare_directory_destroy_mkdir_fails(mock_app, monkeypatch):
+    monkeypatch.setattr(pathlib.Path, "is_file", mock_false)
+    monkeypatch.setattr(pathlib.Path, "is_dir", mock_true)
+    with patch("shutil.rmtree") as mock_rmtree:
+        with patch.object(pathlib.Path, "mkdir") as mock_mkdir:
+            mock_mkdir.side_effect = OSError()
+            with pytest.raises(OSError):
+                mock_app.prepare_directory("foo", True)
+                mock_rmtree.assert_called_with("foo")
+                mock_mkdir.assert_called_with(exist_ok=True)

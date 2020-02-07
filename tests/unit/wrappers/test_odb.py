@@ -1,6 +1,6 @@
 """Tests for odb"""
 import pytest
-from ...context import omfg
+from ...context import wrappers
 
 
 MOCK_DATA = (
@@ -58,8 +58,8 @@ def odb_default_fixture(monkeypatch):
     def mock_reader(*args, **kwargs):
         return MockReader(args[0], args[1])
 
-    monkeypatch.setattr(omfg.wrappers.odb, "Reader", mock_reader)
-    return omfg.wrappers.ODB("test")
+    monkeypatch.setattr(wrappers.odb, "Reader", mock_reader)
+    return wrappers.ODB("test")
 
 
 @pytest.fixture(name="odb_varno2")
@@ -68,8 +68,8 @@ def odb_varno2_fixture(monkeypatch):
     def mock_reader(*args, **kwargs):
         return MockReader(args[0], args[1])
 
-    monkeypatch.setattr(omfg.wrappers.odb, "Reader", mock_reader)
-    return omfg.wrappers.ODB("test", varno=2)
+    monkeypatch.setattr(wrappers.odb, "Reader", mock_reader)
+    return wrappers.ODB("test", varno=2)
 
 
 def test_varnos(odb_default, odb_varno2):
