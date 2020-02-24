@@ -59,16 +59,6 @@ class BaseApp(abc.ABC):
         stdout_handler.setFormatter(formatter)
         root_logger.addHandler(stdout_handler)
 
-    def _log_args(self):
-        """Log the values of the command-line arguments"""
-        logging.info("Command line options:")
-        if self._pos_args is not None:
-            for keyname, _, _ in self._pos_args:
-                logging.info("%-20s = %s", keyname, self.get_arg(keyname))
-        if self._opt_args is not None:
-            for _, keyname, _, _ in self._opt_args:
-                logging.info("%-20s = %s", keyname, self.get_arg(keyname))
-
     @staticmethod
     def _parse(pos_args, opt_args):
         """
@@ -173,17 +163,6 @@ class BaseApp(abc.ABC):
             traceback.print_exc()
             logging.error("Exiting on error: %s", err)
             raise SystemExit(1)
-
-    def run_unique(self, unique_name):
-        """Only run one instance of this script"""
-        logging.info("Trying to create unique socket: %s", unique_name)
-        try:
-            unique_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-            unique_socket.bind(f"\0{unique_name}")
-            self.run()
-        except (OSError, socket.error):
-            logging.warning("Unique process %s already exists, exiting", unique_name)
-            raise SystemExit(0)
 
     @staticmethod
     def validate_directory(directory):

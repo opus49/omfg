@@ -195,3 +195,21 @@ def test_prepare_directory_destroy_mkdir_fails(mock_app, monkeypatch):
                 mock_app.prepare_directory("foo", True)
                 mock_rmtree.assert_called_with("foo")
                 mock_mkdir.assert_called_with(exist_ok=True)
+
+
+def test_run():
+    class TestApp(omfg.BaseApp):
+        def __init__(self, pos_args=None, opt_args=None):
+            self._was_run = False
+
+        def _run(self):
+            self._was_run = True
+    app = TestApp()
+    assert app._was_run is False
+    app.run()
+    assert app._was_run is True
+
+
+def test_run_raises_exit(mock_app):
+    with pytest.raises(SystemExit):
+        mock_app.run()
